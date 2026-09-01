@@ -1,0 +1,18 @@
+services:
+  rack-builder:
+    # Build from source locally. To pull the published image instead, comment
+    # out "build" and uncomment "image" below.
+    build: .
+    # image: ghcr.io/cvd-unmatched/rack:latest
+    container_name: rack-builder
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      - PORT=8080
+      - DATA_DIR=/data
+    volumes:
+      - rack-data:/data
+
+volumes:
+  rack-data:
