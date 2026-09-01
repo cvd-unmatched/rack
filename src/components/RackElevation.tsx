@@ -170,6 +170,14 @@ export function RackElevation({ side, templateById, rowH, pxPerInch }: Props) {
     return m;
   }, [sideConnections]);
 
+  const visibleDevices = useMemo(
+    () =>
+      rack.devices.filter(
+        (d) => d.ports.length === 0 || d.ports.some((p) => p.side === side || p.side === 'both'),
+      ),
+    [rack.devices, side],
+  );
+
   const contentWidth = rackWidthPx(rack.widthIn, pxPerInch);
   const bodyHeight = rack.heightU * rowH;
 
@@ -247,7 +255,7 @@ export function RackElevation({ side, templateById, rowH, pxPerInch }: Props) {
               />
             )}
 
-            {rack.devices.map((d) => (
+            {visibleDevices.map((d) => (
               <DeviceBlock
                 key={d.instanceId}
                 device={d}
@@ -272,6 +280,11 @@ export function RackElevation({ side, templateById, rowH, pxPerInch }: Props) {
             {rack.devices.length === 0 && !dropPreview && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 text-center text-xs text-zinc-600">
                 Drag a device from the library onto the rack
+              </div>
+            )}
+            {rack.devices.length > 0 && visibleDevices.length === 0 && !dropPreview && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 text-center text-xs text-zinc-600">
+                Nothing mounted here has ports on the {side}
               </div>
             )}
           </div>
