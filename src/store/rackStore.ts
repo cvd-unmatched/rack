@@ -186,9 +186,23 @@ export const useRackStore = create<RackStore>()(
       addConnection: (c) => {
         const { rack } = get();
         if (c.fromDevice === c.toDevice && c.fromPort === c.toPort) return;
-        const color = CABLE_PALETTE[rack.connections.length % CABLE_PALETTE.length];
+
+        // A port only ever holds one cable: replace whatever was already
+        // plugged into either end (on this same face) instead of stacking.
+        const sameFace = (conn: Connection) => !conn.face || !c.face || conn.face === c.face;
+        const touchesEndpoint = (conn: Connection, deviceId: string, portId: string) =>
+          (conn.fromDevice === deviceId && conn.fromPort === portId) ||
+          (conn.toDevice === deviceId && conn.toPort === portId);
+        const survivors = rack.connections.filter((conn) => {
+          if (!sameFace(conn)) return true;
+          if (touchesEndpoint(conn, c.fromDevice, c.fromPort)) return false;
+          if (c.toDevice && touchesEndpoint(conn, c.toDevice, c.toPort!)) return false;
+          return true;
+        });
+
+        const color = CABLE_PALETTE[survivors.length % CABLE_PALETTE.length];
         const conn: Connection = { ...c, id: makeId(), color };
-        set({ rack: { ...rack, connections: [...rack.connections, conn] } });
+        set({ rack: { ...rack, connections: [...survivors, conn] } });
       },
 
       removeConnection: (id) =>
