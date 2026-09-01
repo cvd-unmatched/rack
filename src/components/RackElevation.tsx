@@ -189,6 +189,19 @@ export function RackElevation({ side, templateById, rowH, pxPerInch }: Props) {
     backgroundRepeat: 'repeat-y',
   };
 
+  const TOP_CAP_H = 12;
+  const FLOOR_H = 18;
+  const capStyle: React.CSSProperties = {
+    height: TOP_CAP_H,
+    background: 'linear-gradient(to bottom, #3f3f46, #27272a)',
+    borderBottom: '1px solid #18181b',
+  };
+  const floorStyle: React.CSSProperties = {
+    height: FLOOR_H,
+    background: 'linear-gradient(to bottom, #27272a, #18181b)',
+    borderTop: '1px solid #3f3f46',
+  };
+
   return (
     <div className="flex flex-col items-center">
       <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold tracking-wide text-zinc-500 uppercase">
@@ -215,7 +228,7 @@ export function RackElevation({ side, templateById, rowH, pxPerInch }: Props) {
         )}
       </div>
       <div className="flex">
-        <div className="flex flex-col pr-1.5 text-right">
+        <div className="flex flex-col pr-1.5 text-right" style={{ marginTop: TOP_CAP_H }}>
           {Array.from({ length: rack.heightU }).map((_, i) => (
             <div
               key={i}
@@ -226,8 +239,13 @@ export function RackElevation({ side, templateById, rowH, pxPerInch }: Props) {
             </div>
           ))}
         </div>
-        <div className="flex rounded-md border border-zinc-700 bg-gradient-to-b from-zinc-800 to-zinc-900 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-          <div style={railStyle} className="rounded-l-md" />
+        <div className="overflow-hidden rounded-md border border-zinc-700 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          <div style={capStyle} className="flex items-center justify-between px-2.5">
+            <span className="h-[3px] w-[3px] rounded-full bg-black/50" />
+            <span className="h-[3px] w-[3px] rounded-full bg-black/50" />
+          </div>
+          <div className="flex bg-gradient-to-b from-zinc-800 to-zinc-900">
+            <div style={railStyle} />
           <div
             ref={bodyRef}
             data-rack-side={side}
@@ -288,7 +306,12 @@ export function RackElevation({ side, templateById, rowH, pxPerInch }: Props) {
               </div>
             )}
           </div>
-          <div style={railStyle} className="rounded-r-md" />
+            <div style={railStyle} />
+          </div>
+          <div style={floorStyle} className="flex items-center justify-between px-2.5">
+            <span className="h-1 w-1 rounded-full bg-black/50" />
+            <span className="h-1 w-1 rounded-full bg-black/50" />
+          </div>
         </div>
       </div>
     </div>
