@@ -1,5 +1,14 @@
 import { useRef, useState } from 'react';
-import { FolderOpen, PanelLeft, PanelRight, Printer, RotateCcw, Save, Server } from 'lucide-react';
+import {
+  AlertTriangle,
+  FolderOpen,
+  PanelLeft,
+  PanelRight,
+  Printer,
+  RotateCcw,
+  Save,
+  Server,
+} from 'lucide-react';
 import { useRackStore } from '../store/rackStore';
 import { useUiStore } from '../store/uiStore';
 import { loadFromFile, parseRackFile, saveToFile, serialize } from '../lib/fileIO';
@@ -143,8 +152,19 @@ export function Header() {
         </div>
       </div>
 
+      {error && (
+        <div className="pointer-events-none fixed inset-x-0 top-16 z-[100] flex justify-center px-4">
+          <div
+            role="alert"
+            className="toast-in pointer-events-auto flex max-w-lg items-center gap-2.5 rounded-lg border border-red-400/40 bg-red-600 px-4 py-3 text-sm font-medium text-white shadow-2xl shadow-black/40"
+          >
+            <AlertTriangle size={20} className="shrink-0" />
+            {error}
+          </div>
+        </div>
+      )}
+
       <div className="ml-auto flex items-center gap-1.5">
-        {error && <span className="text-[10.5px] text-red-400">{error}</span>}
         <span
           title={SYNC_LABEL[syncStatus]}
           className="mr-1 flex items-center gap-1 text-[10px] text-zinc-500"
