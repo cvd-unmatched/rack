@@ -86,6 +86,7 @@ export function Header() {
       <div className="flex items-center gap-2">
         <Server size={16} className="text-blue-400" />
         <span className="hidden text-sm font-semibold text-zinc-100 sm:inline">Rack Builder</span>
+        <span className="font-mono text-[10px] text-zinc-600">v{__APP_VERSION__}</span>
       </div>
 
       <input
