@@ -16,10 +16,10 @@ function emptyRack(): RackConfig {
   };
 }
 
-function fits(devices: MountedDevice[], startU: number, heightU: number, ignoreId?: string) {
+function fits(devices: MountedDevice[], startU: number, heightU: number, ignoreIds?: string[]) {
   const endU = startU + heightU - 1;
   return devices.every((d) => {
-    if (d.instanceId === ignoreId) return true;
+    if (ignoreIds?.includes(d.instanceId)) return true;
     const dEnd = d.startU + d.heightU - 1;
     return endU < d.startU || startU > dEnd;
   });
@@ -79,7 +79,7 @@ export const useRackStore = create<RackStore>()(
       canPlace: (heightU, startU, ignoreId) => {
         const { rack } = get();
         if (startU < 1 || startU + heightU - 1 > rack.heightU) return false;
-        return fits(rack.devices, startU, heightU, ignoreId);
+        return fits(rack.devices, startU, heightU, ignoreId ? [ignoreId] : undefined);
       },
 
       addDevice: (templateId, startU) => {
@@ -115,13 +115,48 @@ export const useRackStore = create<RackStore>()(
         const { rack, canPlace } = get();
         const dev = rack.devices.find((d) => d.instanceId === instanceId);
         if (!dev) return false;
-        if (!canPlace(dev.heightU, startU, instanceId)) return false;
+
+        if (canPlace(dev.heightU, startU, instanceId)) {
+          set({
+            rack: {
+              ...rack,
+              devices: rack.devices.map((d) =>
+                d.instanceId === instanceId ? { ...d, startU } : d,
+              ),
+            },
+          });
+          return true;
+        }
+
+        // Blocked by exactly one device: swap positions if each fits where
+        // the other used to be, instead of just rejecting the move.
+        const targetEnd = startU + dev.heightU - 1;
+        const blockers = rack.devices.filter((d) => {
+          if (d.instanceId === instanceId) return false;
+          const dEnd = d.startU + d.heightU - 1;
+          return targetEnd >= d.startU && startU <= dEnd;
+        });
+        if (blockers.length !== 1) return false;
+        const other = blockers[0];
+
+        const bothIgnored = [instanceId, other.instanceId];
+        const boundsOk = (u: number, h: number) => u >= 1 && u + h - 1 <= rack.heightU;
+        const swapOk =
+          boundsOk(startU, dev.heightU) &&
+          boundsOk(dev.startU, other.heightU) &&
+          fits(rack.devices, startU, dev.heightU, bothIgnored) &&
+          fits(rack.devices, dev.startU, other.heightU, bothIgnored);
+        if (!swapOk) return false;
+
+        const otherNewStartU = dev.startU;
         set({
           rack: {
             ...rack,
-            devices: rack.devices.map((d) =>
-              d.instanceId === instanceId ? { ...d, startU } : d,
-            ),
+            devices: rack.devices.map((d) => {
+              if (d.instanceId === instanceId) return { ...d, startU };
+              if (d.instanceId === other.instanceId) return { ...d, startU: otherNewStartU };
+              return d;
+            }),
           },
         });
         return true;
