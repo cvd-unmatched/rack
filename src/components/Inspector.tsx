@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 import { useRackStore } from '../store/rackStore';
 import { useUiStore } from '../store/uiStore';
 import { SWATCHES, PORT_TYPE_COLOR, SIDE_COLOR } from '../lib/colors';
@@ -20,6 +20,9 @@ export function Inspector() {
   const select = useUiStore((s) => s.select);
   const rightTab = useUiStore((s) => s.rightTab);
   const setRightTab = useUiStore((s) => s.setRightTab);
+  const mobilePanel = useUiStore((s) => s.mobilePanel);
+  const setMobilePanel = useUiStore((s) => s.setMobilePanel);
+  const open = mobilePanel === 'inspector';
 
   const device = rack.devices.find((d) => d.instanceId === selectedId) ?? null;
   const nameOf = (instanceId: string, portId: string) => {
@@ -31,25 +34,42 @@ export function Inspector() {
     c.toDevice ? nameOf(c.toDevice, c.toPort!) : `Outside: ${c.toExternalLabel}`;
 
   return (
-    <div className="print:hidden flex w-72 shrink-0 flex-col border-l border-zinc-800 bg-[#19191c]">
-      <div className="flex border-b border-zinc-800">
-        <button
-          onClick={() => setRightTab('device')}
-          className={`flex-1 px-3 py-2.5 text-[11px] font-semibold tracking-wide uppercase ${
-            rightTab === 'device' ? 'border-b-2 border-blue-500 text-zinc-100' : 'text-zinc-500'
-          }`}
-        >
-          Device
-        </button>
-        <button
-          onClick={() => setRightTab('connections')}
-          className={`flex-1 px-3 py-2.5 text-[11px] font-semibold tracking-wide uppercase ${
-            rightTab === 'connections' ? 'border-b-2 border-blue-500 text-zinc-100' : 'text-zinc-500'
-          }`}
-        >
-          Cables ({rack.connections.length})
-        </button>
-      </div>
+    <>
+      {open && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+          onClick={() => setMobilePanel('none')}
+        />
+      )}
+      <div
+        className={`print:hidden z-50 flex w-72 shrink-0 flex-col border-l border-zinc-800 bg-[#19191c] lg:static lg:z-auto lg:flex ${
+          open ? 'fixed inset-y-0 right-0' : 'hidden'
+        }`}
+      >
+        <div className="flex border-b border-zinc-800">
+          <button
+            onClick={() => setRightTab('device')}
+            className={`flex-1 px-3 py-2.5 text-[11px] font-semibold tracking-wide uppercase ${
+              rightTab === 'device' ? 'border-b-2 border-blue-500 text-zinc-100' : 'text-zinc-500'
+            }`}
+          >
+            Device
+          </button>
+          <button
+            onClick={() => setRightTab('connections')}
+            className={`flex-1 px-3 py-2.5 text-[11px] font-semibold tracking-wide uppercase ${
+              rightTab === 'connections' ? 'border-b-2 border-blue-500 text-zinc-100' : 'text-zinc-500'
+            }`}
+          >
+            Cables ({rack.connections.length})
+          </button>
+          <button
+            onClick={() => setMobilePanel('none')}
+            className="flex items-center px-2 text-zinc-400 hover:bg-zinc-800 lg:hidden"
+          >
+            <X size={16} />
+          </button>
+        </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3">
         {rightTab === 'device' &&
@@ -223,7 +243,8 @@ export function Inspector() {
             ))}
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

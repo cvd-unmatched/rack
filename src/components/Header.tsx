@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
-import { FolderOpen, Printer, RotateCcw, Save, Server } from 'lucide-react';
+import { FolderOpen, PanelLeft, PanelRight, Printer, RotateCcw, Save, Server } from 'lucide-react';
 import { useRackStore } from '../store/rackStore';
+import { useUiStore } from '../store/uiStore';
 import { loadFromFile, parseRackFile, saveToFile, serialize } from '../lib/fileIO';
 import { useServerSync } from '../lib/useServerSync';
 
@@ -20,6 +21,8 @@ const SYNC_COLOR: Record<ReturnType<typeof useServerSync>, string> = {
 
 export function Header() {
   const syncStatus = useServerSync();
+  const mobilePanel = useUiStore((s) => s.mobilePanel);
+  const setMobilePanel = useUiStore((s) => s.setMobilePanel);
   const rack = useRackStore((s) => s.rack);
   const templates = useRackStore((s) => s.templates);
   const setRackHeight = useRackStore((s) => s.setRackHeight);
@@ -70,9 +73,19 @@ export function Header() {
 
   return (
     <header className="print:hidden flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-zinc-800 bg-zinc-900 px-4 py-2.5">
+      <button
+        onClick={() => setMobilePanel(mobilePanel === 'library' ? 'none' : 'library')}
+        title="Components"
+        className={`rounded p-1.5 lg:hidden ${
+          mobilePanel === 'library' ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-300'
+        }`}
+      >
+        <PanelLeft size={14} />
+      </button>
+
       <div className="flex items-center gap-2">
         <Server size={16} className="text-blue-400" />
-        <span className="text-sm font-semibold text-zinc-100">Rack Builder</span>
+        <span className="hidden text-sm font-semibold text-zinc-100 sm:inline">Rack Builder</span>
       </div>
 
       <input
@@ -170,6 +183,15 @@ export function Header() {
           className="flex items-center gap-1 rounded px-2 py-1 text-[10.5px] text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
         >
           <RotateCcw size={12} /> Reset
+        </button>
+        <button
+          onClick={() => setMobilePanel(mobilePanel === 'inspector' ? 'none' : 'inspector')}
+          title="Device / Cables"
+          className={`rounded p-1.5 lg:hidden ${
+            mobilePanel === 'inspector' ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-300'
+          }`}
+        >
+          <PanelRight size={14} />
         </button>
       </div>
     </header>

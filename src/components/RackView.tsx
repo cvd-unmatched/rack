@@ -17,7 +17,7 @@ export function RackView() {
     const el = containerRef.current;
     if (!el) return;
     const compute = () => {
-      setRowH(fitRowH(rack.heightU, el.clientHeight));
+      setRowH(fitRowH(rack.heightU, el.clientWidth, el.clientHeight));
       setPxPerInch(fitPxPerInch(rack.widthIn, el.clientWidth));
     };
     compute();

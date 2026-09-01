@@ -6,28 +6,42 @@ export const BASE_PX_PER_INCH = 24;
 const MIN_PX_PER_INCH = 14;
 const MAX_PX_PER_INCH = 90;
 
-// Chrome outside the U rows themselves, so the fit calculations below can
-// work in terms of the raw RackView container size.
-const V_CHROME = 130; // outer padding + info line + elevation label
-const H_CHROME = 200; // outer padding + gap between elevations + rails/ruler/borders, both elevations
+const OUTER_PADDING = 64; // px-8 on the RackView container, both sides
+const PER_ELEVATION_CHROME_W = 50; // rails + U ruler + border, one elevation
+const COLUMN_GAP = 40; // gap-10 between the two elevations, only when side by side
+const MIN_COLUMN_WIDTH = 160; // below this a rack elevation stops being readable
 
-/** Row height that fills the available vertical space. Independent of width
- * so a narrow rack doesn't get squat rows just because it's narrow. */
-export function fitRowH(heightU: number, containerHeight: number): number {
-  const fit =
-    containerHeight > 0 ? (containerHeight - V_CHROME) / Math.max(1, heightU) : BASE_ROW_H;
-  return Math.min(MAX_ROW_H, Math.max(MIN_ROW_H, Math.floor(fit)));
-}
-
-/** Pixels-per-inch that fills the available horizontal space (split between
- * the two elevations shown side by side). Independent of row height so a
- * short rack doesn't get narrow panels just because it's short. */
-export function fitPxPerInch(widthIn: number, containerWidth: number): number {
-  const widthPerElevation = (containerWidth - H_CHROME) / 2;
-  const fit = widthIn > 0 && widthPerElevation > 0 ? widthPerElevation / widthIn : BASE_PX_PER_INCH;
-  return Math.min(MAX_PX_PER_INCH, Math.max(MIN_PX_PER_INCH, Math.floor(fit)));
-}
+const V_CHROME_PER_ELEVATION = 70; // outer padding share + "FRONT"/"REAR" label
+const INFO_LINE = 36; // the "My Rack · 12U · 19in rail" line, shown once regardless of columns
 
 export function rackWidthPx(widthIn: number, pxPerInch: number = BASE_PX_PER_INCH): number {
   return widthIn * pxPerInch;
+}
+
+/** Front and rear render side by side (RackView.tsx uses flex-wrap) until
+ * there isn't room for two readable columns, at which point they stack. Both
+ * fit functions need to agree on this so height/width scale consistently. */
+function columnCount(containerWidth: number): 1 | 2 {
+  const twoColumnWidth = containerWidth - OUTER_PADDING - COLUMN_GAP - PER_ELEVATION_CHROME_W * 2;
+  return twoColumnWidth >= MIN_COLUMN_WIDTH * 2 ? 2 : 1;
+}
+
+/** Row height that fills the available vertical space, accounting for
+ * whether the two elevations are stacked (mobile) or side by side. */
+export function fitRowH(heightU: number, containerWidth: number, containerHeight: number): number {
+  const columns = columnCount(containerWidth);
+  const rows = columns === 2 ? 1 : 2;
+  const available = (containerHeight - INFO_LINE) / rows - V_CHROME_PER_ELEVATION;
+  const fit = available > 0 ? available / Math.max(1, heightU) : BASE_ROW_H;
+  return Math.min(MAX_ROW_H, Math.max(MIN_ROW_H, Math.floor(fit)));
+}
+
+/** Pixels-per-inch that fills the available horizontal space, accounting for
+ * whether the two elevations are stacked (mobile) or side by side. */
+export function fitPxPerInch(widthIn: number, containerWidth: number): number {
+  const columns = columnCount(containerWidth);
+  const chrome = OUTER_PADDING + PER_ELEVATION_CHROME_W * columns + (columns === 2 ? COLUMN_GAP : 0);
+  const widthPerElevation = (containerWidth - chrome) / columns;
+  const fit = widthIn > 0 && widthPerElevation > 0 ? widthPerElevation / widthIn : BASE_PX_PER_INCH;
+  return Math.min(MAX_PX_PER_INCH, Math.max(MIN_PX_PER_INCH, Math.floor(fit)));
 }

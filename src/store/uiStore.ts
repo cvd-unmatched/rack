@@ -7,6 +7,8 @@ interface UiStore {
   setRightTab: (t: 'device' | 'connections') => void;
   draggingTemplateId: string | null;
   setDraggingTemplateId: (id: string | null) => void;
+  mobilePanel: 'none' | 'library' | 'inspector';
+  setMobilePanel: (p: 'none' | 'library' | 'inspector') => void;
 }
 
 export const useUiStore = create<UiStore>((set) => ({
@@ -16,4 +18,6 @@ export const useUiStore = create<UiStore>((set) => ({
   setRightTab: (t) => set({ rightTab: t }),
   draggingTemplateId: null,
   setDraggingTemplateId: (id) => set({ draggingTemplateId: id }),
+  mobilePanel: 'none',
+  setMobilePanel: (p) => set({ mobilePanel: p }),
 }));
