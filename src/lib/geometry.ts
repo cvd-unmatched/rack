@@ -11,8 +11,9 @@ const PER_ELEVATION_CHROME_W = 50; // rails + U ruler + border, one elevation
 const COLUMN_GAP = 40; // gap-10 between the two elevations, only when side by side
 const MIN_COLUMN_WIDTH = 160; // below this a rack elevation stops being readable
 
-const V_CHROME_PER_ELEVATION = 70; // outer padding share + "FRONT"/"REAR" label
+const V_CHROME_PER_ELEVATION = 30; // "FRONT"/"REAR" label + its margin, one elevation
 const INFO_LINE = 36; // the "My Rack · 12U · 19in rail" line, shown once regardless of columns
+const BOTTOM_BREATHING_ROOM = 56; // deliberate gap so the rack doesn't butt against the edge
 
 export function rackWidthPx(widthIn: number, pxPerInch: number = BASE_PX_PER_INCH): number {
   return widthIn * pxPerInch;
@@ -31,7 +32,8 @@ function columnCount(containerWidth: number): 1 | 2 {
 export function fitRowH(heightU: number, containerWidth: number, containerHeight: number): number {
   const columns = columnCount(containerWidth);
   const rows = columns === 2 ? 1 : 2;
-  const available = (containerHeight - INFO_LINE) / rows - V_CHROME_PER_ELEVATION;
+  const usableHeight = containerHeight - OUTER_PADDING - BOTTOM_BREATHING_ROOM - INFO_LINE;
+  const available = usableHeight / rows - V_CHROME_PER_ELEVATION;
   const fit = available > 0 ? available / Math.max(1, heightU) : BASE_ROW_H;
   return Math.min(MAX_ROW_H, Math.max(MIN_ROW_H, Math.floor(fit)));
 }
