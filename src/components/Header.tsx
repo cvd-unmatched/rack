@@ -88,7 +88,13 @@ export function Header() {
           min={1}
           max={60}
           value={rack.heightU}
-          onChange={(e) => setRackHeight(Number(e.target.value))}
+          onChange={(e) => {
+            const requested = Number(e.target.value);
+            const applied = setRackHeight(requested);
+            if (applied > requested) {
+              flashError(`Can't shrink below ${applied}U, a device is mounted there.`);
+            }
+          }}
           className="w-14 rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 text-center text-[10.5px] text-zinc-200 outline-none focus:border-blue-500"
         />
         <span className="text-[10px] text-zinc-500">U</span>

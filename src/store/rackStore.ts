@@ -29,7 +29,8 @@ interface RackStore {
   rack: RackConfig;
   templates: DeviceTemplate[];
 
-  setRackHeight: (u: number) => void;
+  /** Returns the height actually applied, clamped so it never cuts through a mounted device. */
+  setRackHeight: (u: number) => number;
   setRackWidth: (w: number) => void;
   setRackName: (name: string) => void;
 
@@ -60,8 +61,17 @@ export const useRackStore = create<RackStore>()(
       rack: emptyRack(),
       templates: builtInTemplates,
 
-      setRackHeight: (u) =>
-        set((s) => ({ rack: { ...s.rack, heightU: Math.max(1, Math.min(60, u)) } })),
+      setRackHeight: (u) => {
+        const { rack } = get();
+        const requested = Math.max(1, Math.min(60, Math.round(u)));
+        const minRequired = rack.devices.reduce(
+          (max, d) => Math.max(max, d.startU + d.heightU - 1),
+          1,
+        );
+        const applied = Math.max(requested, minRequired);
+        set((s) => ({ rack: { ...s.rack, heightU: applied } }));
+        return applied;
+      },
       setRackWidth: (w) =>
         set((s) => ({ rack: { ...s.rack, widthIn: Math.max(4, Math.min(30, w)) } })),
       setRackName: (name) => set((s) => ({ rack: { ...s.rack, name } })),
