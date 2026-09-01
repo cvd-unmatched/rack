@@ -11,9 +11,10 @@ interface Props {
   side: Face;
   templateById: Map<string, DeviceTemplate>;
   rowH: number;
+  pxPerInch: number;
 }
 
-export function RackElevation({ side, templateById, rowH }: Props) {
+export function RackElevation({ side, templateById, rowH, pxPerInch }: Props) {
   const rack = useRackStore((s) => s.rack);
   const addDevice = useRackStore((s) => s.addDevice);
   const addConnection = useRackStore((s) => s.addConnection);
@@ -169,7 +170,7 @@ export function RackElevation({ side, templateById, rowH }: Props) {
     return m;
   }, [sideConnections]);
 
-  const contentWidth = rackWidthPx(rack.widthIn, rowH);
+  const contentWidth = rackWidthPx(rack.widthIn, pxPerInch);
   const bodyHeight = rack.heightU * rowH;
 
   const railStyle: React.CSSProperties = {

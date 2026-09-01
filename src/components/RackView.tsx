@@ -1,11 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useRackStore } from '../store/rackStore';
 import { RackElevation } from './RackElevation';
-import { BASE_ROW_H, fitRowH } from '../lib/geometry';
-
-// Rough height of everything above the U rows: outer padding, the rack info
-// line, and each elevation's "FRONT"/"REAR" label.
-const CHROME_HEIGHT = 130;
+import { BASE_PX_PER_INCH, BASE_ROW_H, fitPxPerInch, fitRowH } from '../lib/geometry';
 
 export function RackView() {
   const rack = useRackStore((s) => s.rack);
@@ -15,16 +11,20 @@ export function RackView() {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [rowH, setRowH] = useState(BASE_ROW_H);
+  const [pxPerInch, setPxPerInch] = useState(BASE_PX_PER_INCH);
 
   useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const compute = () => setRowH(fitRowH(rack.heightU, el.clientHeight - CHROME_HEIGHT));
+    const compute = () => {
+      setRowH(fitRowH(rack.heightU, el.clientHeight));
+      setPxPerInch(fitPxPerInch(rack.widthIn, el.clientWidth));
+    };
     compute();
     const ro = new ResizeObserver(compute);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [rack.heightU]);
+  }, [rack.heightU, rack.widthIn]);
 
   return (
     <div
@@ -44,8 +44,8 @@ export function RackView() {
         <span>{rack.widthIn}" rail</span>
       </div>
       <div className="flex flex-wrap items-start justify-center gap-10">
-        <RackElevation side="front" templateById={templateById} rowH={rowH} />
-        <RackElevation side="rear" templateById={templateById} rowH={rowH} />
+        <RackElevation side="front" templateById={templateById} rowH={rowH} pxPerInch={pxPerInch} />
+        <RackElevation side="rear" templateById={templateById} rowH={rowH} pxPerInch={pxPerInch} />
       </div>
     </div>
   );
