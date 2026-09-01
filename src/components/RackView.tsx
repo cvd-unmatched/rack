@@ -1,6 +1,11 @@
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useRackStore } from '../store/rackStore';
 import { RackElevation } from './RackElevation';
+import { BASE_ROW_H, fitRowH } from '../lib/geometry';
+
+// Rough height of everything above the U rows: outer padding, the rack info
+// line, and each elevation's "FRONT"/"REAR" label.
+const CHROME_HEIGHT = 130;
 
 export function RackView() {
   const rack = useRackStore((s) => s.rack);
@@ -8,8 +13,22 @@ export function RackView() {
 
   const templateById = useMemo(() => new Map(templates.map((t) => [t.id, t])), [templates]);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [rowH, setRowH] = useState(BASE_ROW_H);
+
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const compute = () => setRowH(fitRowH(rack.heightU, el.clientHeight - CHROME_HEIGHT));
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [rack.heightU]);
+
   return (
     <div
+      ref={containerRef}
       className="flex flex-1 flex-col items-center overflow-auto bg-zinc-950 px-8 py-8"
       style={{
         backgroundImage:
@@ -25,8 +44,8 @@ export function RackView() {
         <span>{rack.widthIn}" rail</span>
       </div>
       <div className="flex flex-wrap items-start justify-center gap-10">
-        <RackElevation side="front" templateById={templateById} />
-        <RackElevation side="rear" templateById={templateById} />
+        <RackElevation side="front" templateById={templateById} rowH={rowH} />
+        <RackElevation side="rear" templateById={templateById} rowH={rowH} />
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DeviceTemplate, Face } from '../types';
 import { useRackStore } from '../store/rackStore';
 import { useUiStore } from '../store/uiStore';
-import { ROW_H, rackWidthPx } from '../lib/geometry';
+import { rackWidthPx } from '../lib/geometry';
 import { usePortPositions, type Point } from '../lib/usePortPositions';
 import { DeviceBlock } from './DeviceBlock';
 import { ConnectionsOverlay } from './ConnectionsOverlay';
@@ -10,9 +10,10 @@ import { ConnectionsOverlay } from './ConnectionsOverlay';
 interface Props {
   side: Face;
   templateById: Map<string, DeviceTemplate>;
+  rowH: number;
 }
 
-export function RackElevation({ side, templateById }: Props) {
+export function RackElevation({ side, templateById, rowH }: Props) {
   const rack = useRackStore((s) => s.rack);
   const addDevice = useRackStore((s) => s.addDevice);
   const addConnection = useRackStore((s) => s.addConnection);
@@ -31,7 +32,7 @@ export function RackElevation({ side, templateById }: Props) {
   const [pending, setPending] = useState<{ instanceId: string; portId: string } | null>(null);
   const [mousePos, setMousePos] = useState<Point | null>(null);
 
-  const positions = usePortPositions(bodyRef, [rack.devices, rack.connections.length, side]);
+  const positions = usePortPositions(bodyRef, [rack.devices, rack.connections.length, side, rowH]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -54,7 +55,7 @@ export function RackElevation({ side, templateById }: Props) {
     if (!bodyRef.current) return 1;
     const rect = bodyRef.current.getBoundingClientRect();
     const y = clientY - rect.top;
-    return Math.max(1, Math.min(rack.heightU, Math.floor(y / ROW_H) + 1));
+    return Math.max(1, Math.min(rack.heightU, Math.floor(y / rowH) + 1));
   }
 
   function handleDragOver(e: React.DragEvent) {
@@ -168,14 +169,14 @@ export function RackElevation({ side, templateById }: Props) {
     return m;
   }, [sideConnections]);
 
-  const contentWidth = rackWidthPx(rack.widthIn);
-  const bodyHeight = rack.heightU * ROW_H;
+  const contentWidth = rackWidthPx(rack.widthIn, rowH);
+  const bodyHeight = rack.heightU * rowH;
 
   const railStyle: React.CSSProperties = {
     width: 10,
     backgroundColor: '#27272a',
-    backgroundImage: `radial-gradient(circle at 50% ${ROW_H / 2}px, #52525b 1.4px, transparent 1.6px)`,
-    backgroundSize: `100% ${ROW_H}px`,
+    backgroundImage: `radial-gradient(circle at 50% ${rowH / 2}px, #52525b 1.4px, transparent 1.6px)`,
+    backgroundSize: `100% ${rowH}px`,
     backgroundRepeat: 'repeat-y',
   };
 
@@ -209,7 +210,7 @@ export function RackElevation({ side, templateById }: Props) {
           {Array.from({ length: rack.heightU }).map((_, i) => (
             <div
               key={i}
-              style={{ height: ROW_H }}
+              style={{ height: rowH }}
               className="flex items-center justify-end font-mono text-[9px] text-zinc-600"
             >
               {i + 1}
@@ -230,15 +231,15 @@ export function RackElevation({ side, templateById }: Props) {
             style={{
               width: contentWidth,
               height: bodyHeight,
-              backgroundImage: `repeating-linear-gradient(to bottom, rgba(255,255,255,0.045) 0px, rgba(255,255,255,0.045) 1px, transparent 1px, transparent ${ROW_H}px)`,
+              backgroundImage: `repeating-linear-gradient(to bottom, rgba(255,255,255,0.045) 0px, rgba(255,255,255,0.045) 1px, transparent 1px, transparent ${rowH}px)`,
             }}
           >
             {dropPreview && (
               <div
                 className="pointer-events-none absolute right-1 left-1 rounded-sm border-2 border-dashed"
                 style={{
-                  top: (dropPreview.u - 1) * ROW_H,
-                  height: dropPreview.h * ROW_H,
+                  top: (dropPreview.u - 1) * rowH,
+                  height: dropPreview.h * rowH,
                   borderColor: dropPreview.ok ? '#4ade80' : '#f87171',
                   backgroundColor: dropPreview.ok ? '#4ade8022' : '#f8717122',
                 }}
@@ -250,6 +251,7 @@ export function RackElevation({ side, templateById }: Props) {
                 key={d.instanceId}
                 device={d}
                 side={side}
+                rowH={rowH}
                 category={templateById.get(d.templateId)?.category}
                 connectedPortIds={connectedPortIds}
                 externalByPort={externalByPort}
