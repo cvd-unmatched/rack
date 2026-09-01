@@ -4,12 +4,14 @@ import {
   FolderOpen,
   PanelLeft,
   PanelRight,
+  Plus,
   Printer,
   RotateCcw,
   Save,
   Server,
+  Trash2,
 } from 'lucide-react';
-import { useRackStore } from '../store/rackStore';
+import { useRackStore, useActiveRack } from '../store/rackStore';
 import { useUiStore } from '../store/uiStore';
 import { loadFromFile, parseRackFile, saveToFile, serialize } from '../lib/fileIO';
 import { useServerSync } from '../lib/useServerSync';
@@ -32,13 +34,20 @@ export function Header() {
   const syncStatus = useServerSync();
   const mobilePanel = useUiStore((s) => s.mobilePanel);
   const setMobilePanel = useUiStore((s) => s.setMobilePanel);
-  const rack = useRackStore((s) => s.rack);
+  const select = useUiStore((s) => s.select);
+
+  const rack = useActiveRack();
+  const racks = useRackStore((s) => s.racks);
+  const activeRackId = useRackStore((s) => s.activeRackId);
+  const addRack = useRackStore((s) => s.addRack);
+  const removeRack = useRackStore((s) => s.removeRack);
+  const switchRack = useRackStore((s) => s.switchRack);
   const templates = useRackStore((s) => s.templates);
   const setRackHeight = useRackStore((s) => s.setRackHeight);
   const setRackWidth = useRackStore((s) => s.setRackWidth);
   const setRackName = useRackStore((s) => s.setRackName);
-  const importState = useRackStore((s) => s.importState);
-  const resetAll = useRackStore((s) => s.resetAll);
+  const importRack = useRackStore((s) => s.importRack);
+  const resetActiveRack = useRackStore((s) => s.resetActiveRack);
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +75,8 @@ export function Header() {
       const text = await loadFromFile();
       if (!text) return;
       const data = parseRackFile(text);
-      importState(data);
+      importRack(data);
+      select(null);
     } catch {
       flashError('Could not read that file as a rack config.');
     } finally {
@@ -76,7 +86,20 @@ export function Header() {
 
   function handleReset() {
     if (window.confirm('Clear the current rack and start over? This cannot be undone in-app.')) {
-      resetAll();
+      resetActiveRack();
+    }
+  }
+
+  function handleAddRack() {
+    addRack();
+    select(null);
+  }
+
+  function handleDeleteRack() {
+    if (racks.length <= 1) return;
+    if (window.confirm(`Delete "${rack.name}"? This cannot be undone.`)) {
+      removeRack(activeRackId);
+      select(null);
     }
   }
 
@@ -98,10 +121,44 @@ export function Header() {
         <span className="font-mono text-[10px] text-zinc-600">v{__APP_VERSION__}</span>
       </div>
 
+      <div className="flex items-center gap-1">
+        <select
+          value={activeRackId}
+          onChange={(e) => {
+            switchRack(e.target.value);
+            select(null);
+          }}
+          title="Switch rack"
+          className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-1 text-xs text-zinc-200 outline-none focus:border-blue-500"
+        >
+          {racks.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.name}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={handleAddRack}
+          title="Add a new rack"
+          className="rounded p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+        >
+          <Plus size={14} />
+        </button>
+        <button
+          onClick={handleDeleteRack}
+          disabled={racks.length <= 1}
+          title="Delete this rack"
+          className="rounded p-1 text-zinc-400 hover:bg-red-500/20 hover:text-red-400 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-zinc-400"
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
+
       <input
         value={rack.name}
         onChange={(e) => setRackName(e.target.value)}
-        className="w-40 rounded border border-transparent bg-transparent px-1.5 py-1 text-xs text-zinc-300 outline-none hover:border-zinc-700 focus:border-blue-500 focus:bg-zinc-800"
+        title="Rename this rack"
+        className="w-32 rounded border border-transparent bg-transparent px-1.5 py-1 text-xs text-zinc-300 outline-none hover:border-zinc-700 focus:border-blue-500 focus:bg-zinc-800"
       />
 
       <div className="flex items-center gap-1.5">
@@ -178,7 +235,7 @@ export function Header() {
         <button
           onClick={handleLoad}
           disabled={busy}
-          title="Open a rack config .json file"
+          title="Open a rack config .json file as a new rack"
           className="flex items-center gap-1 rounded bg-zinc-800 px-2 py-1 text-[10.5px] text-zinc-300 hover:bg-zinc-700 disabled:opacity-50"
         >
           <FolderOpen size={12} /> Open
@@ -186,7 +243,7 @@ export function Header() {
         <button
           onClick={handleSave}
           disabled={busy}
-          title="Save the rack config as .json"
+          title="Save this rack as .json"
           className="flex items-center gap-1 rounded bg-zinc-800 px-2 py-1 text-[10.5px] text-zinc-300 hover:bg-zinc-700 disabled:opacity-50"
         >
           <Save size={12} /> Save
@@ -200,7 +257,7 @@ export function Header() {
         </button>
         <button
           onClick={handleReset}
-          title="Reset to an empty rack"
+          title="Reset this rack"
           className="flex items-center gap-1 rounded px-2 py-1 text-[10.5px] text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
         >
           <RotateCcw size={12} /> Reset

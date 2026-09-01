@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DeviceTemplate, Face } from '../types';
-import { useRackStore } from '../store/rackStore';
+import { useRackStore, useActiveRack } from '../store/rackStore';
 import { useUiStore } from '../store/uiStore';
 import { rackWidthPx } from '../lib/geometry';
 import { usePortPositions, type Point } from '../lib/usePortPositions';
@@ -15,7 +15,7 @@ interface Props {
 }
 
 export function RackElevation({ side, templateById, rowH, pxPerInch }: Props) {
-  const rack = useRackStore((s) => s.rack);
+  const rack = useActiveRack();
   const addDevice = useRackStore((s) => s.addDevice);
   const addConnection = useRackStore((s) => s.addConnection);
   const removeConnection = useRackStore((s) => s.removeConnection);

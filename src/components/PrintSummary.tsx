@@ -1,8 +1,8 @@
-import { useRackStore } from '../store/rackStore';
+import { useActiveRack } from '../store/rackStore';
 import { PORT_TYPE_LABEL } from '../lib/colors';
 
 export function PrintSummary() {
-  const rack = useRackStore((s) => s.rack);
+  const rack = useActiveRack();
 
   const nameOf = (instanceId: string, portId: string) => {
     const d = rack.devices.find((x) => x.instanceId === instanceId);

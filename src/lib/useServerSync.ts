@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRackStore } from '../store/rackStore';
-import { serialize, parseRackFile } from './fileIO';
+import { serializeWorkspace, parseWorkspaceFile } from './fileIO';
 
 export type SyncStatus = 'checking' | 'synced' | 'local-only' | 'error';
 
@@ -15,8 +15,8 @@ export function useServerSync(): SyncStatus {
         const res = await fetch('/api/config');
         if (cancelled) return;
         if (res.status === 200) {
-          const data = parseRackFile(await res.text());
-          useRackStore.getState().importState(data);
+          const data = parseWorkspaceFile(await res.text());
+          useRackStore.getState().importWorkspace(data);
           setStatus('synced');
         } else if (res.status === 204) {
           setStatus('synced');
@@ -40,14 +40,20 @@ export function useServerSync(): SyncStatus {
 
     const unsubscribe = useRackStore.subscribe((state, prevState) => {
       if (!hydrated.current) return;
-      if (state.rack === prevState.rack && state.templates === prevState.templates) return;
+      if (
+        state.racks === prevState.racks &&
+        state.activeRackId === prevState.activeRackId &&
+        state.templates === prevState.templates
+      ) {
+        return;
+      }
 
       window.clearTimeout(timer);
       timer = window.setTimeout(() => {
         fetch('/api/config', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: serialize(state.rack, state.templates),
+          body: serializeWorkspace(state.racks, state.activeRackId, state.templates),
         }).catch(() => setStatus('error'));
       }, 800);
     });

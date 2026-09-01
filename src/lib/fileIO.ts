@@ -19,6 +19,44 @@ export function parseRackFile(text: string): { rack: RackConfig; templates: Devi
   return { rack: data.rack, templates: data.templates };
 }
 
+export interface WorkspaceFile {
+  version: 1;
+  racks: RackConfig[];
+  activeRackId: string;
+  templates: DeviceTemplate[];
+}
+
+export function serializeWorkspace(
+  racks: RackConfig[],
+  activeRackId: string,
+  templates: DeviceTemplate[],
+): string {
+  const data: WorkspaceFile = { version: 1, racks, activeRackId, templates };
+  return JSON.stringify(data);
+}
+
+export function parseWorkspaceFile(text: string): {
+  racks: RackConfig[];
+  activeRackId: string;
+  templates: DeviceTemplate[];
+} {
+  const data = JSON.parse(text) as Partial<WorkspaceFile>;
+  if (
+    !data ||
+    typeof data !== 'object' ||
+    !Array.isArray(data.racks) ||
+    data.racks.length === 0 ||
+    !Array.isArray(data.templates)
+  ) {
+    throw new Error('This file does not look like a rack-builder workspace.');
+  }
+  const activeRackId =
+    data.activeRackId && data.racks.some((r) => r.id === data.activeRackId)
+      ? data.activeRackId
+      : data.racks[0].id;
+  return { racks: data.racks, activeRackId, templates: data.templates };
+}
+
 interface SaveFilePickerOptions {
   suggestedName?: string;
   types?: { description: string; accept: Record<string, string[]> }[];

@@ -1,10 +1,10 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useRackStore } from '../store/rackStore';
+import { useRackStore, useActiveRack } from '../store/rackStore';
 import { RackElevation } from './RackElevation';
 import { BASE_PX_PER_INCH, BASE_ROW_H, fitPxPerInch, fitRowH } from '../lib/geometry';
 
 export function RackView() {
-  const rack = useRackStore((s) => s.rack);
+  const rack = useActiveRack();
   const templates = useRackStore((s) => s.templates);
 
   const templateById = useMemo(() => new Map(templates.map((t) => [t.id, t])), [templates]);
@@ -44,8 +44,20 @@ export function RackView() {
         <span>{rack.widthIn}" rail</span>
       </div>
       <div className="flex flex-wrap items-start justify-center gap-10">
-        <RackElevation side="front" templateById={templateById} rowH={rowH} pxPerInch={pxPerInch} />
-        <RackElevation side="rear" templateById={templateById} rowH={rowH} pxPerInch={pxPerInch} />
+        <RackElevation
+          key={`${rack.id}-front`}
+          side="front"
+          templateById={templateById}
+          rowH={rowH}
+          pxPerInch={pxPerInch}
+        />
+        <RackElevation
+          key={`${rack.id}-rear`}
+          side="rear"
+          templateById={templateById}
+          rowH={rowH}
+          pxPerInch={pxPerInch}
+        />
       </div>
     </div>
   );

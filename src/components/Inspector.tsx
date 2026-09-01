@@ -1,5 +1,5 @@
 import { Plus, Trash2, X } from 'lucide-react';
-import { useRackStore } from '../store/rackStore';
+import { useRackStore, useActiveRack } from '../store/rackStore';
 import { useUiStore } from '../store/uiStore';
 import { SWATCHES, PORT_TYPE_COLOR, SIDE_COLOR } from '../lib/colors';
 import { makeId } from '../lib/id';
@@ -8,7 +8,7 @@ import type { PortSide, PortType } from '../types';
 const PORT_TYPES: PortType[] = ['rj45', 'sfp', 'usb-a', 'usb-c', 'power', 'coax', 'other'];
 
 export function Inspector() {
-  const rack = useRackStore((s) => s.rack);
+  const rack = useActiveRack();
   const removeDevice = useRackStore((s) => s.removeDevice);
   const renameDevice = useRackStore((s) => s.renameDevice);
   const setDeviceColor = useRackStore((s) => s.setDeviceColor);
