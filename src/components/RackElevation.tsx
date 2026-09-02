@@ -172,9 +172,7 @@ export function RackElevation({ side, templateById, rowH, pxPerInch }: Props) {
 
   const visibleDevices = useMemo(
     () =>
-      rack.devices.filter(
-        (d) => d.ports.length === 0 || d.ports.some((p) => p.side === side || p.side === 'both'),
-      ),
+      rack.devices.filter((d) => !d.mountSide || d.mountSide === 'both' || d.mountSide === side),
     [rack.devices, side],
   );
 
@@ -302,7 +300,7 @@ export function RackElevation({ side, templateById, rowH, pxPerInch }: Props) {
             )}
             {rack.devices.length > 0 && visibleDevices.length === 0 && !dropPreview && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 text-center text-xs text-zinc-600">
-                Nothing mounted here has ports on the {side}
+                Nothing mounted here is set to show on the {side}
               </div>
             )}
           </div>

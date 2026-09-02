@@ -12,6 +12,7 @@ export function Inspector() {
   const removeDevice = useRackStore((s) => s.removeDevice);
   const renameDevice = useRackStore((s) => s.renameDevice);
   const setDeviceColor = useRackStore((s) => s.setDeviceColor);
+  const setDeviceMountSide = useRackStore((s) => s.setDeviceMountSide);
   const setDevicePorts = useRackStore((s) => s.setDevicePorts);
   const removeConnection = useRackStore((s) => s.removeConnection);
   const recolorConnection = useRackStore((s) => s.recolorConnection);
@@ -100,6 +101,26 @@ export function Inspector() {
                     />
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] text-zinc-400">Visible on</label>
+                <select
+                  value={device.mountSide ?? 'both'}
+                  onChange={(e) =>
+                    setDeviceMountSide(device.instanceId, e.target.value as PortSide)
+                  }
+                  className="w-full rounded border px-2 py-1.5 text-sm font-medium outline-none"
+                  style={{
+                    backgroundColor: `${SIDE_COLOR[device.mountSide ?? 'both']}22`,
+                    borderColor: `${SIDE_COLOR[device.mountSide ?? 'both']}88`,
+                    color: SIDE_COLOR[device.mountSide ?? 'both'],
+                  }}
+                >
+                  <option value="both">both</option>
+                  <option value="front">front only</option>
+                  <option value="rear">rear only</option>
+                </select>
               </div>
 
               <div>

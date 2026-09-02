@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Connection, DeviceTemplate, MountedDevice, PortDef, RackConfig } from '../types';
+import type {
+  Connection,
+  DeviceTemplate,
+  MountedDevice,
+  PortDef,
+  PortSide,
+  RackConfig,
+} from '../types';
 import { builtInTemplates } from '../data/deviceLibrary';
 import { makeId } from '../lib/id';
 import { CABLE_PALETTE } from '../lib/colors';
@@ -53,6 +60,7 @@ interface RackStore {
   moveDevice: (instanceId: string, startU: number) => boolean;
   renameDevice: (instanceId: string, name: string) => void;
   setDeviceColor: (instanceId: string, color: string) => void;
+  setDeviceMountSide: (instanceId: string, mountSide: PortSide) => void;
   setDevicePorts: (instanceId: string, ports: PortDef[]) => void;
   setPortOccupied: (instanceId: string, portId: string, occupied: boolean) => void;
 
@@ -153,6 +161,7 @@ export const useRackStore = create<RackStore>()(
           heightU: tpl.heightU,
           color: tpl.color,
           ports: tpl.ports.map((p) => ({ ...p, id: makeId() })),
+          mountSide: tpl.mountSide,
         };
         set({
           racks: withActiveRack(racks, activeRackId, (r) => ({
@@ -237,6 +246,14 @@ export const useRackStore = create<RackStore>()(
           racks: withActiveRack(s.racks, s.activeRackId, (r) => ({
             ...r,
             devices: r.devices.map((d) => (d.instanceId === instanceId ? { ...d, color } : d)),
+          })),
+        })),
+
+      setDeviceMountSide: (instanceId, mountSide) =>
+        set((s) => ({
+          racks: withActiveRack(s.racks, s.activeRackId, (r) => ({
+            ...r,
+            devices: r.devices.map((d) => (d.instanceId === instanceId ? { ...d, mountSide } : d)),
           })),
         })),
 

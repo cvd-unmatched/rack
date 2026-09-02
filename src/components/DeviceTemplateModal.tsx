@@ -37,6 +37,7 @@ export function DeviceTemplateModal({ seed, editId, onClose }: Props) {
   const [category, setCategory] = useState<Category>(seed?.category ?? 'Custom');
   const [heightU, setHeightU] = useState(seed?.heightU ?? 1);
   const [color, setColor] = useState(seed?.color ?? SWATCHES[0]);
+  const [mountSide, setMountSide] = useState<PortSide>(seed?.mountSide ?? 'both');
   const [groups, setGroups] = useState<PortGroup[]>(
     seed
       ? Array.from(
@@ -72,9 +73,9 @@ export function DeviceTemplateModal({ seed, editId, onClose }: Props) {
       })),
     );
     if (editId) {
-      updateTemplate(editId, { name, category, heightU, color, ports });
+      updateTemplate(editId, { name, category, heightU, color, ports, mountSide });
     } else {
-      addTemplate({ name, category, heightU, color, ports });
+      addTemplate({ name, category, heightU, color, ports, mountSide });
     }
     onClose();
   }
@@ -129,17 +130,36 @@ export function DeviceTemplateModal({ seed, editId, onClose }: Props) {
             </div>
           </div>
 
-          <div>
-            <label className="mb-1 block text-[11px] text-zinc-400">Color</label>
-            <div className="flex gap-1.5">
-              {SWATCHES.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setColor(c)}
-                  className={`h-6 w-6 rounded-full ${color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-zinc-900' : ''}`}
-                  style={{ backgroundColor: c }}
-                />
-              ))}
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="mb-1 block text-[11px] text-zinc-400">Color</label>
+              <div className="flex gap-1.5">
+                {SWATCHES.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setColor(c)}
+                    className={`h-6 w-6 rounded-full ${color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-zinc-900' : ''}`}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="w-28">
+              <label className="mb-1 block text-[11px] text-zinc-400">Visible on</label>
+              <select
+                value={mountSide}
+                onChange={(e) => setMountSide(e.target.value as PortSide)}
+                className="w-full rounded border px-2 py-1.5 text-sm font-medium outline-none"
+                style={{
+                  backgroundColor: `${SIDE_COLOR[mountSide]}22`,
+                  borderColor: `${SIDE_COLOR[mountSide]}88`,
+                  color: SIDE_COLOR[mountSide],
+                }}
+              >
+                <option value="both">both</option>
+                <option value="front">front only</option>
+                <option value="rear">rear only</option>
+              </select>
             </div>
           </div>
 

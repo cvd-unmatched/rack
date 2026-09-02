@@ -27,6 +27,11 @@ export interface DeviceTemplate {
   color: string;
   ports: PortDef[];
   builtIn?: boolean;
+  /** Which elevation(s) this device appears in. Defaults to "both" when
+   * unset; only set this to "front"/"rear" for gear that's genuinely only
+   * ever visible from one side (a blanking plate installed from the front,
+   * a cable arm on the rear). Independent of individual port sides. */
+  mountSide?: PortSide;
 }
 
 export interface MountedDevice {
@@ -37,6 +42,7 @@ export interface MountedDevice {
   heightU: number;
   color: string;
   ports: PortDef[];
+  mountSide?: PortSide;
 }
 
 export interface Connection {
