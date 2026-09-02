@@ -4,6 +4,7 @@ import {
   FolderOpen,
   PanelLeft,
   PanelRight,
+  Pencil,
   Plus,
   Printer,
   RotateCcw,
@@ -103,6 +104,11 @@ export function Header() {
     }
   }
 
+  function handleRenameRack() {
+    const name = window.prompt('Rename this rack', rack.name);
+    if (name && name.trim()) setRackName(name.trim());
+  }
+
   return (
     <header className="print:hidden flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-zinc-800 bg-zinc-900 px-4 py-2.5">
       <button
@@ -145,6 +151,13 @@ export function Header() {
           <Plus size={14} />
         </button>
         <button
+          onClick={handleRenameRack}
+          title="Rename this rack"
+          className="rounded p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+        >
+          <Pencil size={14} />
+        </button>
+        <button
           onClick={handleDeleteRack}
           disabled={racks.length <= 1}
           title="Delete this rack"
@@ -153,13 +166,6 @@ export function Header() {
           <Trash2 size={14} />
         </button>
       </div>
-
-      <input
-        value={rack.name}
-        onChange={(e) => setRackName(e.target.value)}
-        title="Rename this rack"
-        className="w-32 rounded border border-transparent bg-transparent px-1.5 py-1 text-xs text-zinc-300 outline-none hover:border-zinc-700 focus:border-blue-500 focus:bg-zinc-800"
-      />
 
       <div className="flex items-center gap-1.5">
         <span className="text-[10px] font-medium tracking-wide text-zinc-500 uppercase">Height</span>
