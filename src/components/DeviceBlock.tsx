@@ -50,7 +50,7 @@ export function DeviceBlock({
   };
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragging) return;
-    setDragU(Math.round((e.clientY - startY.current) / rowH));
+    setDragU(Math.round(((e.clientY - startY.current) / rowH) * 2) / 2);
   };
   const onPointerUp = () => {
     if (!dragging) return;

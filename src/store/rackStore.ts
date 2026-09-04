@@ -23,12 +23,15 @@ function emptyRack(name = 'My Rack'): RackConfig {
   };
 }
 
+// Positions are in U from the rack's top (U1's top edge is 1); a device
+// occupies the half-open interval [startU, startU + heightU). heightU can be
+// fractional (e.g. 0.5 for half-U gear).
 function fits(devices: MountedDevice[], startU: number, heightU: number, ignoreIds?: string[]) {
-  const endU = startU + heightU - 1;
+  const endU = startU + heightU;
   return devices.every((d) => {
     if (ignoreIds?.includes(d.instanceId)) return true;
-    const dEnd = d.startU + d.heightU - 1;
-    return endU < d.startU || startU > dEnd;
+    const dEnd = d.startU + d.heightU;
+    return endU <= d.startU || startU >= dEnd;
   });
 }
 
@@ -201,11 +204,11 @@ export const useRackStore = create<RackStore>()(
 
         // Blocked by exactly one device: swap positions if each fits where
         // the other used to be, instead of just rejecting the move.
-        const targetEnd = startU + dev.heightU - 1;
+        const targetEnd = startU + dev.heightU;
         const blockers = rack.devices.filter((d) => {
           if (d.instanceId === instanceId) return false;
-          const dEnd = d.startU + d.heightU - 1;
-          return targetEnd >= d.startU && startU <= dEnd;
+          const dEnd = d.startU + d.heightU;
+          return targetEnd > d.startU && startU < dEnd;
         });
         if (blockers.length !== 1) return false;
         const other = blockers[0];

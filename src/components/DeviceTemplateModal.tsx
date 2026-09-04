@@ -121,10 +121,13 @@ export function DeviceTemplateModal({ seed, editId, onClose }: Props) {
               <label className="mb-1 block text-[11px] text-zinc-400">Height</label>
               <input
                 type="number"
-                min={1}
+                min={0.5}
                 max={12}
+                step={0.5}
                 value={heightU}
-                onChange={(e) => setHeightU(Math.max(1, Math.min(12, Number(e.target.value))))}
+                onChange={(e) =>
+                  setHeightU(Math.max(0.5, Math.min(12, Math.round(Number(e.target.value) * 2) / 2)))
+                }
                 className="w-full rounded border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-sm text-zinc-100 outline-none focus:border-blue-500"
               />
             </div>

@@ -56,7 +56,11 @@ export function RackElevation({ side, templateById, rowH, pxPerInch }: Props) {
     if (!bodyRef.current) return 1;
     const rect = bodyRef.current.getBoundingClientRect();
     const y = clientY - rect.top;
-    return Math.max(1, Math.min(rack.heightU, Math.floor(y / rowH) + 1));
+    // Snap to the nearest half-U slot so half-height gear can be placed
+    // in either half of a row.
+    const slot = Math.floor(y / (rowH / 2));
+    const raw = 1 + slot * 0.5;
+    return Math.max(1, Math.min(rack.heightU + 0.5, raw));
   }
 
   function handleDragOver(e: React.DragEvent) {
