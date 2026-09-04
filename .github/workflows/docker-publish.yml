@@ -12,6 +12,11 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    # QEMU-emulated arm64 builds of this image have been observed to hang for
+    # hours on an illegal-instruction crash inside emulated npm/node rather
+    # than failing cleanly, silently burning Actions minutes. Bound the job
+    # so a repeat of that fails fast instead.
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -33,9 +38,6 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -43,7 +45,11 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          # amd64 only: building this Node-based image for arm64 via QEMU
+          # emulation is unreliable (crashes/hangs during npm ci). If native
+          # arm64 support is needed later, use a real arm64 runner instead
+          # of emulation rather than re-adding QEMU here.
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
